@@ -3,6 +3,8 @@
   <head>
     <meta charset="utf-8">
     <script src="https://d3js.org/d3.v4.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/11.1.0/nouislider.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/11.1.0/nouislider.css"></script>
     <style>
       #chart {
         position: fixed;
@@ -23,7 +25,11 @@
         background-color: white;
       }
       .slider {
-        width: 200px
+        width: 300px;
+        margin-left: 10px;
+      }
+      body {
+        font-family: sans-serif
       }
     </style>
   </head>
@@ -33,34 +39,46 @@
       <div>
         Perplexity: <span id="perpVal"></span>
       </div>
-      <input type="range" min="10" max="30" value="10" step="20" id="perpSlide" class="slider"></input>
+      <br>
+      <div class="slider" id="perpSlider"></div>
+      <br>
       <div>
-        lambda1: <span id="l1Val"></span>
+        lambda range: <span id="lambda1Val"></span> - <span id="lambda2Val"></span>
       </div>
-      <input type="range" min="0" max="27" value="0" step="1" id="l1Slide" class="slider"></input>
-      <div>
-        lambda2: <span id="l2Val"></span>
-      </div>
-      <input type="range" min="1" max="28" value="28" step="1" id="l2Slide" class="slider"></input>
+      <br>
+      <div class="slider" id="lambdaSlider"></div>
     </div>
     <script>
+      var perpValue = document.getElementById("perpVal")
+      var perpSlider = document.getElementById("perpSlider");
+      noUiSlider.create(perpSlider, {
+      	start: [10],
+      	connect: true,
+      	range: {
+      		'min': 10,
+      		'max': 30
+      	},
+        step: 20
+      });
 
-      var perpSlider = document.getElementById("perpSlide");
-      var perpValue = document.getElementById("perpVal");
-      perpValue.innerHTML = perpSlider.value;
-
-      var lambda1Slider = document.getElementById("l1Slide");
-      var lambda1Value = document.getElementById("l1Val");
-      lambda1Value.innerHTML = lambda1Slider.value;
-
-      var lambda2Slider = document.getElementById("l2Slide");
-      var lambda2Value = document.getElementById("l2Val");
-      lambda2Value.innerHTML = lambda2Slider.value;
+      var lambda1Value = document.getElementById("lambda1Val")
+      var lambda2Value = document.getElementById("lambda2Val")
+      var lambdaSlider = document.getElementById("lambdaSlider")
+      noUiSlider.create(lambdaSlider, {
+      	start: [0, 28],
+      	connect: true,
+      	range: {
+      		'min': 0,
+      		'max': 28
+      	},
+        step: 1,
+        margin: 1
+      });
 
       var chartDiv = document.getElementById("chart");
       var strokeWidth = 1;
       var margin = {top: 10, right: 10, bottom: 10, left: 10}
-      var width = chartDiv.clientHeight - margin.left - margin.right ;
+      var width = chartDiv.clientWidth - margin.left - margin.right ;
       var height = chartDiv.clientHeight - margin.top - margin.bottom - 50;
       /*
       width = 960 - margin.left - margin.right,
@@ -106,6 +124,9 @@
       var lambda_1 = 0; //0-27
       var lambda_2 = 28; //1-28
       //initial load
+      perpValue.innerHTML = perplexity;
+      lambda1Value.innerHTML = lambda_1;
+      lambda2Value.innerHTML = lambda_2;
       d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
         if (error) throw error;
         // var coords = randomCoords(500,1000)
@@ -113,49 +134,32 @@
         update(data)
       });
 
-      //update graph on perpSlider input
-      perpSlider.oninput = function() {
-        perpValue.innerHTML = this.value;
-        perplexity = this.value
-        d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
-          if (error) throw error;
-          // var coords = randomCoords(500,1000)
-          var data = d3.tsvParseRows(text)
-          update(data)
-        });
-      }
 
-      //update graph on lambda1 input
-      lambda1Slider.oninput = function() {
-        lambda1Value.innerHTML = this.value;
-        lambda2Slider.min = Number(this.value) + 1;
-        lambda_1 = this.value
-        d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
-          if (error) throw error;
-          // var coords = randomCoords(500,1000)
-          var data = d3.tsvParseRows(text)
-          update(data)
-        });
-      }
 
-      //update graph on lambda2 input
-      lambda2Slider.oninput = function() {
-        lambda2Value.innerHTML = this.value;
-        lambda1Slider.max = Number(this.value) - 1;
-        lambda_2 = this.value
+      perpSlider.noUiSlider.on('update', function(){
+        perplexity = Math.trunc(perpSlider.noUiSlider.get())
+        perpValue.innerHTML = perplexity;
         d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
           if (error) throw error;
           // var coords = randomCoords(500,1000)
           var data = d3.tsvParseRows(text)
           update(data)
         });
-      }
-      /*
-      d3.interval(function() {
-        coords = randomCoords(1000,1000)
-        update(coords)
-      }, 1500);
-      */
+      });
+
+      lambdaSlider.noUiSlider.on('update', function(){
+        lambda_1 = Math.trunc(lambdaSlider.noUiSlider.get()[0])
+        lambda_2 = Math.trunc(lambdaSlider.noUiSlider.get()[1])
+        lambda1Value.innerHTML = lambda_1;
+        lambda2Value.innerHTML = lambda_2;
+        d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+          if (error) throw error;
+          // var coords = randomCoords(500,1000)
+          var data = d3.tsvParseRows(text)
+          update(data)
+        });
+      });
+
     </script>
   </body>
 </html>
