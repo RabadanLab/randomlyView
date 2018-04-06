@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+    <style>
+      #chart {
+        position: fixed;
+        left: 0px;
+        right: 0px;
+        top: 0px;
+        bottom: 0px;
+        z-index: -1;
+        background-color: white;
+      }
+      #menu {
+        position: fixed;
+        left: 20px;
+        top: 20px;
+        z-index: 1;
+        border: 1px black;
+        border-radius: 5px;
+        background-color: white;
+      }
+      .slider {
+        width: 200px
+      }
+    </style>
+  </head>
+  <body>
+    <div id="chart"></div>
+    <div id="menu">
+      <div>
+        Perplexity: <span id="perpVal"></span>
+      </div>
+      <input type="range" min="10" max="30" value="10" step="20" id="perpSlide" class="slider"></input>
+      <div>
+        lambda1: <span id="l1Val"></span>
+      </div>
+      <input type="range" min="0" max="27" value="0" step="1" id="l1Slide" class="slider"></input>
+      <div>
+        lambda2: <span id="l2Val"></span>
+      </div>
+      <input type="range" min="1" max="28" value="28" step="1" id="l2Slide" class="slider"></input>
+    </div>
+    <script>
+
+      var perpSlider = document.getElementById("perpSlide");
+      var perpValue = document.getElementById("perpVal");
+      perpValue.innerHTML = perpSlider.value;
+
+      var lambda1Slider = document.getElementById("l1Slide");
+      var lambda1Value = document.getElementById("l1Val");
+      lambda1Value.innerHTML = lambda1Slider.value;
+
+      var lambda2Slider = document.getElementById("l2Slide");
+      var lambda2Value = document.getElementById("l2Val");
+      lambda2Value.innerHTML = lambda2Slider.value;
+
+      var chartDiv = document.getElementById("chart");
+      var strokeWidth = 1;
+      var margin = {top: 10, right: 10, bottom: 10, left: 10}
+      var width = chartDiv.clientHeight - margin.left - margin.right ;
+      var height = chartDiv.clientHeight - margin.top - margin.bottom - 50;
+      /*
+      width = 960 - margin.left - margin.right,
+      height = 700 - margin.top - margin.bottom;
+      */
+      var x = d3.scaleLinear().range([0, width - margin.right]).domain([-100,100]);
+      var y = d3.scaleLinear().range([0, height]).domain([100,-100]);
+
+      /*
+      function randomCoords(length, max) {
+          return Array.apply(null, Array(length)).map(function(item, index){
+            return {x: Math.floor(Math.random() * max),
+              y:Math.floor(Math.random() * max)};
+        });
+      }
+      */
+      var svg = d3.select("body").append("svg")
+        .attr("width", width + margin.right + margin.left - 20)
+        .attr("height", height + margin.top + margin.bottom )
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+      function update(data){
+        var elem = svg.selectAll("circle")
+            .data(data)
+
+        elem.attr("class", "update")
+        .transition()
+        .duration(750)
+          .attr("cx", function(d) { return x(d[0]); })
+          .attr("cy", function(d) { return y(d[1]); })
+
+        elem.enter().append("circle")
+          .attr("r", "1.5px")
+          .attr("fill","dodgerblue")
+          .attr("cx", function(d) { return x(d[0]); })
+          .attr("cy", function(d) { return y(d[1]); })
+
+      }
+
+      var perplexity = 10;
+      var lambda_1 = 0; //0-27
+      var lambda_2 = 28; //1-28
+      //initial load
+      d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+        if (error) throw error;
+        // var coords = randomCoords(500,1000)
+        var data = d3.tsvParseRows(text)
+        update(data)
+      });
+
+      //update graph on perpSlider input
+      perpSlider.oninput = function() {
+        perpValue.innerHTML = this.value;
+        perplexity = this.value
+        d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+          if (error) throw error;
+          // var coords = randomCoords(500,1000)
+          var data = d3.tsvParseRows(text)
+          update(data)
+        });
+      }
+
+      //update graph on lambda1 input
+      lambda1Slider.oninput = function() {
+        lambda1Value.innerHTML = this.value;
+        lambda2Slider.min = Number(this.value) + 1;
+        lambda_1 = this.value
+        d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+          if (error) throw error;
+          // var coords = randomCoords(500,1000)
+          var data = d3.tsvParseRows(text)
+          update(data)
+        });
+      }
+
+      //update graph on lambda2 input
+      lambda2Slider.oninput = function() {
+        lambda2Value.innerHTML = this.value;
+        lambda1Slider.max = Number(this.value) - 1;
+        lambda_2 = this.value
+        d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+          if (error) throw error;
+          // var coords = randomCoords(500,1000)
+          var data = d3.tsvParseRows(text)
+          update(data)
+        });
+      }
+      /*
+      d3.interval(function() {
+        coords = randomCoords(1000,1000)
+        update(coords)
+      }, 1500);
+      */
+    </script>
+  </body>
+</html>
