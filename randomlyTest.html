@@ -64,6 +64,7 @@
       <br>
       <button type="button" onclick="demo_l1()">demo l1</button>
       <button type="button" onclick="demo_l2()">demo l2</button>
+      <button type="button" onclick="interval_stop()">stop</button>
     </div>
     <script>
       var perpValue = document.getElementById("perpVal")
@@ -193,10 +194,19 @@
         });
       })
 
+
+      var  interval_l1, interval_l2;
+
       function demo_l1() {
         var i = 1;
+        if(interval_l1){
+          interval_l1.stop();
+        }
+        if(interval_l2){
+          interval_l2.stop();
+        }
         lambdaSlider.noUiSlider.set([0,85]);
-        d3.interval(function(elapsed) {
+        interval_l1 = d3.interval(function(elapsed) {
           if (elapsed > 25500) {
             this.stop(); // <== !!!
             return;
@@ -208,8 +218,15 @@
 
       function demo_l2() {
         var i = 1;
+        if(interval_l1){
+          interval_l1.stop();
+        }
+        if(interval_l2){
+          interval_l2.stop();
+        }
+
         lambdaSlider.noUiSlider.set([0,85]);
-        d3.interval(function(elapsed) {
+        interval_l2 = d3.interval(function(elapsed) {
           if (elapsed > 25500) {
             this.stop(); // <== !!!
             return;
@@ -217,6 +234,15 @@
           lambdaSlider.noUiSlider.set([null,85-(i*5)]);
           i++;
         }, 1500);
+      }
+
+      function interval_stop() {
+        if(interval_l1){
+          interval_l1.stop();
+        }
+        if(interval_l2){
+          interval_l2.stop();
+        }
       }
     </script>
   </body>
