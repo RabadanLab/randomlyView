@@ -62,8 +62,8 @@
       <br>
       <div class="slider" id="lambdaSlider"></div>
       <br>
-      <button type="button" onclick="demo_l1()">demo l1</button>
-      <button type="button" onclick="demo_l2()">demo l2</button>
+      <button type="button" onclick="demo_l1()">auto l1</button>
+      <button type="button" onclick="demo_l2()">auto l2</button>
       <button type="button" onclick="interval_stop()">stop</button>
     </div>
     <script>
@@ -131,7 +131,7 @@
 
           elem.attr("class", "update")
           .transition()
-          .duration(750)
+          .duration(200)
             //.ease(d3.easeElastic.period(0.4))
             //.delay(function(d,i) {return i})
             .attr("cx", function(d) { return x(d[0]); })
@@ -156,7 +156,7 @@
           //console.log('update perp')
           perplexity = Math.trunc(perpSlider.noUiSlider.get())
           perpValue.innerHTML = perplexity;
-          d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+          d3.text("https://s3.amazonaws.com/randomly-mouse-cortex-pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
             if (error) throw error;
 
             var data = d3.tsvParseRows(text)
@@ -170,7 +170,7 @@
           lambda_2 = Math.trunc(lambdaSlider.noUiSlider.get()[1])
           lambda1Value.innerHTML = lambda_1;
           lambda2Value.innerHTML = lambda_2;
-          d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+          d3.text("https://s3.amazonaws.com/randomly-mouse-cortex-pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
             if (error) throw error;
 
             var data = d3.tsvParseRows(text)
@@ -186,7 +186,7 @@
         perpValue.innerHTML = perplexity;
         lambda1Value.innerHTML = lambda_1;
         lambda2Value.innerHTML = lambda_2;
-        d3.text("Pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
+        d3.text("https://s3.amazonaws.com/randomly-mouse-cortex-pos/mouse_cortex_" + lambda_1 + "_" + lambda_2 + "_" + perplexity + ".txt", function(error,text){
           if (error) throw error;
 
           var data = d3.tsvParseRows(text)
@@ -205,13 +205,13 @@
         if(interval_l2){
           interval_l2.stop();
         }
-        lambdaSlider.noUiSlider.set([0,85]);
+        lambdaSlider.noUiSlider.set([80,85]);
         interval_l1 = d3.interval(function(elapsed) {
           if (elapsed > 25500) {
             this.stop(); // <== !!!
             return;
           }
-          lambdaSlider.noUiSlider.set([i*5,null]);
+          lambdaSlider.noUiSlider.set([80-i*5,null]);
           i++;
         }, 1500);
       }
